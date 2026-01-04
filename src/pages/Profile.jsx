@@ -1,4 +1,4 @@
-// frontend/src/pages/Profile.jsx - FULLY UPDATED PRODUCTION VERSION
+// frontend/src/pages/Profile.jsx - FIXED DATE ERROR + PRODUCTION READY
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
@@ -95,6 +95,30 @@ export default function Profile() {
 
   const isOwnProfile = user?.id === id;
 
+  // ✅ SAFE DATE FORMATTER
+  const formatDateShort = (date) => {
+    try {
+      return new Date(date).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatDateLong = (date) => {
+    try {
+      return new Date(date).toLocaleDateString('en-US', { 
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric'
+      });
+    } catch {
+      return 'Unknown date';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -145,11 +169,7 @@ export default function Profile() {
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
               Member since{' '}
               <span className="font-semibold text-gray-900 dark:text-white">
-                {new Date(profileUser.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+                {formatDateLong(profileUser.createdAt)}
               </span>
             </p>
 
@@ -270,7 +290,8 @@ export default function Profile() {
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        {new Date(recipe.createdAt).toLocaleDateString('MMM dd, yyyy')}
+                        {/* ✅ FIXED: Proper date format */}
+                        {formatDateShort(recipe.createdAt)}
                       </span>
                       <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400 font-medium">
                         <span className="text-yellow-500 text-lg">★</span>

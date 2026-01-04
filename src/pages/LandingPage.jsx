@@ -1,4 +1,4 @@
-// frontend/src/pages/LandingPage.jsx - FULLY OPTIMIZED PRODUCTION VERSION
+// frontend/src/pages/LandingPage.jsx - FULLY FIXED DATE ERROR + PRODUCTION READY
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
@@ -10,6 +10,18 @@ export default function LandingPage() {
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // ✅ SAFE DATE FORMATTER - Prevents console errors!
+  const formatDateShort = (date) => {
+    try {
+      return new Date(date).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return 'Recent';
+    }
+  };
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -219,8 +231,9 @@ export default function LandingPage() {
                         </span>
                         {recipe.author?.username || 'Anonymous'}
                       </span>
+                      {/* ✅ FIXED: Proper date format */}
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        {new Date(recipe.createdAt).toLocaleDateString('MMM dd')}
+                        {formatDateShort(recipe.createdAt)}
                       </span>
                     </div>
                   </div>
