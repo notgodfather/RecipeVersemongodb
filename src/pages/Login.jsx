@@ -1,4 +1,4 @@
-// frontend/src/pages/Login.jsx - FIXED 404 + PRODUCTION READY
+// frontend/src/pages/Login.jsx - 🎉 FULLY FIXED: Backend 200 → Frontend success
 import React from 'react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -15,7 +15,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // 🌐 Check for expired token redirect
+  // 🌐 Session expired check
   React.useEffect(() => {
     if (searchParams.get('expired')) {
       toast.warning('Session expired. Please login again.', {
@@ -30,20 +30,26 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // ✅ FIXED: Add /api/ prefix → /api/auth/login
+      // Backend returns: { success: true, token, user: { id, username, email } }
       const res = await api.post('/api/auth/login', form);
       
-      // Save token
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
-      }
+      // ✅ FIXED: Extract token + user properly
+      const { token, user } = res.data;
       
-      // Auth context
-      login(res.data.user || res.data);
+      // ✅ 1. Global storage
+      localStorage.setItem('token', token);
+      
+      // ✅ 2. API interceptor for protected routes
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // ✅ 3. AuthContext - login(userObject, tokenString)
+      login(user, token);
       
       toast.success('Welcome back!');
       navigate('/recipes', { replace: true });
     } catch (err) {
+      // ✅ Better error handling + debug
+      console.error('Login response:', err.response?.data);
       const errorMsg = err.response?.data?.message || 'Login failed';
       setError(errorMsg);
       toast.error(errorMsg);
