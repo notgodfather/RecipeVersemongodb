@@ -1,4 +1,4 @@
-// frontend/src/pages/Recipes.jsx
+// frontend/src/pages/Recipes.jsx - FULL FIXED VERSION
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
@@ -16,7 +16,10 @@ export default function Recipes() {
       try {
         setLoading(true);
         setError('');
-        const url = searchQuery ? `/recipes?search=${encodeURIComponent(searchQuery)}` : '/recipes';
+        // FIXED: Added /api/ prefix to ALL endpoints
+        const url = searchQuery 
+          ? `/api/recipes?search=${encodeURIComponent(searchQuery)}` 
+          : '/api/recipes';
         const res = await api.get(url);
         setRecipes(res.data);
       } catch (err) {
@@ -29,7 +32,7 @@ export default function Recipes() {
     };
 
     fetchRecipes();
-  }, [searchQuery]); // Re-fetch when search query changes
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -73,7 +76,8 @@ export default function Recipes() {
             <p className="text-2xl text-gray-600 dark:text-gray-400 mb-8">
               {searchQuery
                 ? 'No recipes match your search. Try different keywords!'
-                : 'No recipes yet... be the first to share your creation!'}
+                : 'No recipes yet... be the first to share your creation!'
+              }
             </p>
 
             {!searchQuery && (
