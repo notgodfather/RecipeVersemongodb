@@ -1,0 +1,12 @@
+/* frontend/src/index.css */
+@import "tailwindcss";
+
+/* Optional: Add your custom global styles here */
+body {
+  @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen;
+}
+
+/* Make buttons and cards look nice by default */
+button {
+  @apply transition-all duration-200;
+}
