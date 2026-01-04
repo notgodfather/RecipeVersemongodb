@@ -1,4 +1,4 @@
-// frontend/src/pages/LandingPage.jsx
+// frontend/src/pages/LandingPage.jsx - FULL FIXED VERSION
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
@@ -11,10 +11,11 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        // Get latest 6 recipes (you can change to most liked later)
-        const res = await api.get('/recipes', { params: { limit: 6 } });
+        // FIXED: Added /api/ prefix - matches backend routes
+        const res = await api.get('/api/recipes', { params: { limit: 6 } });
         setFeaturedRecipes(res.data);
       } catch (err) {
+        console.error('Featured recipes error:', err);
         toast.error('Failed to load featured recipes');
       } finally {
         setLoading(false);
