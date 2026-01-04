@@ -1,75 +1,79 @@
-// frontend/src/services/api.js - FULL PRODUCTION-READY VERSION
+// frontend/src/services/api.js - FIXED DOUBLE PREFIX + PRODUCTION PERFECT
 import axios from 'axios';
 
 const api = axios.create({
-  // 🌐 Dynamic baseURL - Dev vs Production
+  // 🌐 FIXED: Backend ROOT (no /api) - Backend handles /api/*
   baseURL: import.meta.env.VITE_API_URL || 
-           import.meta.env.PROD ? 'https://recipeversebackend.onrender.com/api' :
-           'http://localhost:5000/api',
+           (import.meta.env.PROD 
+             ? 'https://recipeversebackend.onrender.com'
+             : 'http://localhost:5000'),
   
-  // 🍪 Credentials for auth cookies
   withCredentials: true,
-  
-  // ⏱️ Timeout protection
-  timeout: 10000,
-  
-  // 📱 Headers
-  headers: {
-    'Content-Type': 'application/json',
-  }
+  timeout: 15000, // Increased for Render cold starts
+  headers: { 'Content-Type': 'application/json' }
 });
 
-// 🔑 Auto-add token to ALL requests
+// 🔑 Token interceptor
 api.interceptors.request.use(
   (config) => {
-    // LocalStorage (primary)
-    let token = localStorage.getItem('token');
-    
-    // Fallback: sessionStorage
-    if (!token) {
-      token = sessionStorage.getItem('token');
-    }
-    
+    let token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    console.log(`📡 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    // 🐛 Remove in production
+    if (import.meta.env.DEV) {
+      console.log(`📡 ${config.method?.toUpperCase()} ${config.url}`);
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// 🚨 Auto-logout on 401 + token refresh
+// 🚨 Response interceptor - Auto logout 401s
 api.interceptors.response.use(
   (response) => response,
   
   async (error) => {
     const originalRequest = error.config;
     
-    // 🔓 401 = Unauthorized
+    // 🔓 Token expired → Logout
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      // Clear invalid token
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
+      // Clear tokens
+      ['token', 'user'].forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
       
-      // Redirect to login
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login?expired=true';
+      // Redirect (avoid infinite loops)
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+        const params = new URLSearchParams({ expired: 'true' });
+        window.location.href = `/login?${params}`;
       }
       
       return Promise.reject(error);
     }
     
-    // 🌐 Network errors
-    if (!error.response) {
-      console.error('🌐 Network error - check backend URL');
+    // Offline/network
+    if (!error.response && import.meta.env.DEV) {
+      console.error('🌐 Network error - Backend offline?');
     }
     
     return Promise.reject(error);
   }
 );
+
+// 🔄 Helper: Set auth token
+export const setAuthToken = (token) => {
+  if (token) {
+    localStorage.setItem('token', token);
+  } else {
+    localStorage.removeItem('token');
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
 
 export default api;
